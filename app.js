@@ -1,16 +1,24 @@
 const express = require('express');
+const app = express();
 const userModel = require('./models/user.model');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const flash = require('connect-flash');
+const expressSession = require('express-session');
 
 
-const app = express();
 require('./config/db.config'); 
 app.set('view engine', 'ejs')
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser())
+app.use(flash());
+app.use(expressSession({
+    resave:false,
+    saveUninitialized : false,
+    secret : "skjdfsiyfgsnf8"
+}))
 
 
 app.get('/', (req, res) => {
@@ -20,13 +28,20 @@ app.get('/', (req, res) => {
 app.get('/profile', isLoggedIn ,(req, res) => {
     res.render('profile')
 })
-  
+   
 app.get('/register', (req, res) => {
-    res.render('register');
+    res.render('register', {error : req.flash("error")[0]});
 })
 
 app.post('/register', (req, res) => {
-    const {username, password, email} = req.body;
+    const {username, password} = req.body;
+
+    let user = userModel.findOne({username});
+    if(user) {
+        // data
+        req.flash("error", "account already exists, please login.")
+        return res.redirect('/register');
+    }
     bcrypt.genSalt(10, (err, salt) => {
         bcrypt.hash(password, salt, async (err, hash) => {
             await userModel.create({
@@ -41,13 +56,16 @@ app.post('/register', (req, res) => {
 })
 
 app.get('/login', (req, res) => {
-    res.render('login');
+    res.render('login', {error : req.flash("error")[0]});
 })
-
+ 
 app.post('/login' , async (req, res) => {
     const {username, password}  = req.body;
     let user = await userModel.findOne({username});
-    if(!user) return res.send("invalid username or password")
+    if(!user) {
+        req.flash("error", "username or password is invalid");
+        return res.redirect('/login');
+    }
 
     bcrypt.compare(password, user.password, (err, result) => {
         if(result){
@@ -56,7 +74,8 @@ app.post('/login' , async (req, res) => {
             res.redirect('/profile');
         }
         else {
-            return res.send("invalid username or password");
+            req.flash("error", "username or password is incorrect.")
+            return res.redirect("/login");
         }
     })
 })
@@ -68,7 +87,10 @@ app.get('/logout', (req, res) => {
 })
 
 function isLoggedIn(req, res, next) {
-    if(!req.cookies.token)return res.redirect('/login');
+    if(!req.cookies.token){
+        req.flash("error", "you must be loggedin.");
+        return res.redirect('/login');
+    }
     jwt.verify(req.cookies.token, "secret", (err, decoded) => { // don't write secret here, unsafe
         if(err) {
             res.cookie("token", "");

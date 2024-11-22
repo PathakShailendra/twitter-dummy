@@ -1,0 +1,16 @@
+agar same username ka acc bane toh error dike aur
+dusra galat creadentials likhe toh error dikhe
+
+agar he  user toh user acc already exixt
+
+npm i connect-flash
+npm i express-session
+npm i cookie-parser
+
+baad me app.use me inn teeno ko chala na he
+
+app.use(expressSession({
+    resave : false.
+    saveUninitialised : false,
+    secret : "wefrnhfgbdgtrhsbgdfgr"
+}));
