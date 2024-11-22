@@ -14,9 +14,13 @@ app.use(cookieParser())
 
 
 app.get('/', (req, res) => {
-    res.render('login')
+    res.render('welcome')
 });
 
+app.get('/profile', isLoggedIn ,(req, res) => {
+    res.render('profile')
+})
+  
 app.get('/register', (req, res) => {
     res.render('register');
 })
@@ -27,13 +31,12 @@ app.post('/register', (req, res) => {
         bcrypt.hash(password, salt, async (err, hash) => {
             await userModel.create({
                 username,
-                email,
                 password : hash
             })
         })
-        let token = jwt.sign({email}, "secret") // don't do this extremely unsafe for representational purpose only.
+        let token = jwt.sign({username}, "secret") // don't do this extremely unsafe for representational purpose only.
         res.cookie("token", token);
-        res.send("created");
+        res.redirect('/profile')
     })
 })
 
@@ -48,9 +51,9 @@ app.post('/login' , async (req, res) => {
 
     bcrypt.compare(password, user.password, (err, result) => {
         if(result){
-            let token = jwt.sign({email}, "secret"); //don't repeat this extremely unsafe
+            let token = jwt.sign({username}, "secret"); //don't repeat this extremely unsafe
             res.cookie("token", token);
-            res.send("Logged in");
+            res.redirect('/profile');
         }
         else {
             return res.send("invalid username or password");
