@@ -1,11 +1,13 @@
 const express = require('express');
 const app = express();
 const userModel = require('./models/user.model');
+const postModel = require('./models/post.model');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const flash = require('connect-flash');
 const expressSession = require('express-session');
+
 
 
 require('./config/db.config'); 
@@ -86,6 +88,25 @@ app.get('/logout', (req, res) => {
     res.redirect('/login');
 })
 
+app.get('/feed', (req, res) => {
+    res.render('feed')
+})
+
+app.get('/createpost', isLoggedIn , (req, res) => {
+    res.render('createpost');
+})
+
+app.post('/createpost' , isLoggedIn , async (req, res) => {
+    const { tweet } = req.body;
+    await postModel.create({
+        tweet,
+        username : req.user.username
+    })
+    res.redirect('/feed');
+})
+
+
+
 function isLoggedIn(req, res, next) {
     if(!req.cookies.token){
         req.flash("error", "you must be loggedin.");
@@ -101,6 +122,8 @@ function isLoggedIn(req, res, next) {
         }
     })
 }
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
