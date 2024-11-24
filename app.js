@@ -23,7 +23,7 @@ app.use(expressSession({
 }))
 
 
-app.get('/', (req, res) => {
+app.get('/', redirectToFeed ,(req, res) => {
     res.render('welcome')
 });
 
@@ -35,10 +35,10 @@ app.get('/register', (req, res) => {
     res.render('register', {error : req.flash("error")[0]});
 })
 
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
     const {username, password} = req.body;
 
-    let user = userModel.findOne({username});
+    let user = await userModel.findOne({username});
     if(user) {
         // data
         req.flash("error", "account already exists, please login.")
@@ -88,8 +88,9 @@ app.get('/logout', (req, res) => {
     res.redirect('/login');
 })
 
-app.get('/feed', (req, res) => {
-    res.render('feed')
+app.get('/feed', isLoggedIn ,async (req, res) => {
+    let tweets = await postModel.find();
+    res.render('feed' , {tweets})
 })
 
 app.get('/createpost', isLoggedIn , (req, res) => {
@@ -123,7 +124,22 @@ function isLoggedIn(req, res, next) {
     })
 }
 
-
+function redirectToFeed(req, res, next) {
+    if(req.cookies.token) {
+        jwt.verify(req.cookies.token, 'secret', (err, decoded) => {
+            if(err) {
+                req.cookie('token', "");
+                return next();
+            }
+            else {
+                return res.redirect('/feed');
+            }
+        })
+    }
+    else {
+        return next();
+    }
+}
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
