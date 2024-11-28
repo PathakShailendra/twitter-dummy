@@ -89,8 +89,8 @@ app.get('/logout', (req, res) => {
 })
 
 app.get('/feed', isLoggedIn ,async (req, res) => {
-    let tweets = await postModel.find();
-    res.render('feed' , {tweets})
+    const loggedInUser = await userModel.findOne({username: req.user.username}).populate('tweets');
+    res.render('feed' , {tweets : loggedInUser.tweets, id : loggedInUser._id})
 })
 
 app.get('/createpost', isLoggedIn , (req, res) => {
@@ -99,12 +99,28 @@ app.get('/createpost', isLoggedIn , (req, res) => {
 
 app.post('/createpost' , isLoggedIn , async (req, res) => {
     const { tweet } = req.body;
-    await postModel.create({
+    const newTweet = await postModel.create({
         tweet,
         username : req.user.username
     })
+    const loggedInUser = await userModel.findOne({username: req.user.username});
+    loggedInUser.tweets.push(newTweet._id);
+    loggedInUser.save();
     res.redirect('/feed');
 })
+
+app.get('/like-tweet/:id', isLoggedIn, async (req, res) => {
+    const tweet = await postModel.findById(req.params.id);
+    const user = await userModel.findOne({username : req.user.username});
+    if(tweet.likes.includes(user._id)) {
+        tweet.likes.splice(tweet.likes.indexOf(user._id), 1);
+    }
+    else {
+        tweet.likes.push(user._id);
+    }
+    await tweet.save();
+    res.redirect('/feed');
+}) 
 
 
 

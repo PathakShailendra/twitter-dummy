@@ -43,8 +43,10 @@
                       <span>81K</span>
                   </div>
                   <div class="flex items-center space-x-1">
-                      <i class="ri-heart-line"></i>
-                      <span>914K</span>
+                      <a href="/like-tweet/<%= tweet._id %>"><i class="<%if(tweet.likes.includes(id)) { %>
+                        text-red-500
+                      <% }%> ri-heart-fill"></i></a>
+                      <span><%= tweet.likes.length %></span>
                   </div>
                   <div class="flex items-center space-x-1">
                       <i class="ri-bar-chart-box-line"></i>
