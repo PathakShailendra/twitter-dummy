@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const userModel = require('./models/user.model');
 const postModel = require('./models/post.model');
+const commentModel = require('./models/comment.model');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -80,7 +81,7 @@ app.post('/login' , async (req, res) => {
             return res.redirect("/login");
         }
     })
-})
+}) 
 
 
 app.get('/logout', (req, res) => {
@@ -89,8 +90,9 @@ app.get('/logout', (req, res) => {
 })
 
 app.get('/feed', isLoggedIn ,async (req, res) => {
-    const loggedInUser = await userModel.findOne({username: req.user.username}).populate('tweets');
-    res.render('feed' , {tweets : loggedInUser.tweets, id : loggedInUser._id})
+    let tweets = await postModel.find();
+    const loggedInUser = await userModel.findOne({username : req.user.username});
+    res.render("feed", { tweets, id : loggedInUser._id });
 })
 
 app.get('/createpost', isLoggedIn , (req, res) => {
@@ -116,11 +118,27 @@ app.get('/like-tweet/:id', isLoggedIn, async (req, res) => {
         tweet.likes.splice(tweet.likes.indexOf(user._id), 1);
     }
     else {
-        tweet.likes.push(user._id);
+        tweet.likes.push(user._id); 
     }
     await tweet.save();
     res.redirect('/feed');
 }) 
+
+
+app.post('/comment/:id', isLoggedIn , async (req, res) => {
+    const loggedInUser = await userModel.findOne({username: req.user.username});
+    console.log(req.body.comment);
+    const newComment = await commentModel.create({
+        user : loggedInUser._id,
+        data : req.body.comment,
+        tweet : req.params.id
+    })
+
+    const tweet = await postModel.findById(req.params.id);
+    tweet.comment.push(newComment._id);
+    tweet.save();
+    res.redirect('/feed')
+})
 
 
 

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Twitter App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
+  <div class="tweet bg-gray-800 p-4 rounded-md w-96 shadow-lg">
+    <button 
+      class="comment-btn bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+      Comment
+    </button>
+    <div class="comment-box mt-4 hidden">
+      <div class="flex space-x-2">
+        <input 
+          type="text" 
+          placeholder="Write a comment..." 
+          class="flex-1 p-2 border border-gray-600 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button 
+          class="submit-comment bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400 transition">
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Selecting the comment button and the comment box
+    const commentBtn = document.querySelector('.comment-btn');
+    const commentBox = document.querySelector('.comment-box');
+
+    // Adding event listener for the comment button
+    commentBtn.addEventListener('click', () => {
+      // Toggle the visibility of the comment box
+      if (commentBox.classList.contains('hidden')) {
+        commentBox.classList.remove('hidden'); // Show the comment box
+      } else {
+        commentBox.classList.add('hidden'); // Hide the comment box
+      }
+    });
+
+    // Adding functionality for the submit button
+    const submitComment = document.querySelector('.submit-comment');
+    submitComment.addEventListener('click', () => {
+      const inputField = commentBox.querySelector('input');
+      const comment = inputField.value.trim();
+      
+      if (comment) {
+        alert(`Comment Submitted: ${comment}`); // Example: You can update this to save or display the comment
+        inputField.value = ''; // Clear the input field
+        commentBox.classList.add('hidden'); // Hide the comment box after submitting
+      } else {
+        alert('Please write a comment before submitting!');
+      }
+    });
+  </script>
+</body>
+</html>
